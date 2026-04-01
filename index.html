@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quantity Measurement – Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #060b18;
+      overflow: hidden;
+    }
+
+    /* Animated mesh background */
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 70% 60% at 15% 25%, rgba(56,189,248,0.13) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 70% at 85% 75%, rgba(168,85,247,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 55% 5%,  rgba(251,191,36,0.08) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 90% 20%,  rgba(52,211,153,0.07) 0%, transparent 55%);
+      animation: meshMove 10s ease-in-out infinite alternate;
+    }
+    @keyframes meshMove {
+      0%   { transform: scale(1); }
+      100% { transform: scale(1.1) rotate(3deg); }
+    }
+
+    /* Floating particles */
+    .particles { position: fixed; inset: 0; z-index: 0; overflow: hidden; }
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(56,189,248,0.15);
+      animation: drift linear infinite;
+    }
+    @keyframes drift {
+      0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+      10%  { opacity: 1; }
+      90%  { opacity: 1; }
+      100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* Main wrapper */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 50px 120px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+      animation: appear 0.7s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    @keyframes appear {
+      from { opacity:0; transform:translateY(50px) scale(0.96); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    /* ── LEFT PANEL ── */
+    .left {
+      width: 300px;
+      background: linear-gradient(160deg, #0d1f3c 0%, #091428 60%, #060b18 100%);
+      padding: 56px 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      border-right: 1px solid rgba(255,255,255,0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    .left::before {
+      content: '';
+      position: absolute;
+      width: 250px; height: 250px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(56,189,248,0.12), transparent 70%);
+      top: -60px; left: -60px;
+    }
+    .left::after {
+      content: '';
+      position: absolute;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(168,85,247,0.1), transparent 70%);
+      bottom: -40px; right: -40px;
+    }
+
+    .logo-ring {
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      padding: 4px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 50px rgba(56,189,248,0.3), 0 0 0 12px rgba(56,189,248,0.06);
+      animation: pulse 3s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 50px rgba(56,189,248,0.3), 0 0 0 12px rgba(56,189,248,0.06); }
+      50%      { box-shadow: 0 0 70px rgba(56,189,248,0.5), 0 0 0 16px rgba(56,189,248,0.1); }
+    }
+    .logo-inner {
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      background: linear-gradient(160deg, #0d2040, #091428);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 64px;
+    }
+
+    .brand-name {
+      font-size: 18px; font-weight: 700;
+      color: #fff; letter-spacing: 1px;
+      text-align: center;
+      position: relative; z-index: 1;
+    }
+    .brand-sub {
+      font-size: 12px; color: rgba(255,255,255,0.35);
+      text-align: center; line-height: 1.6;
+      position: relative; z-index: 1;
+    }
+
+    .features {
+      display: flex; flex-direction: column; gap: 10px;
+      position: relative; z-index: 1; width: 100%;
+    }
+    .feat {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12px; color: rgba(255,255,255,0.5);
+    }
+    .feat-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      flex-shrink: 0;
+    }
+
+    /* ── RIGHT PANEL ── */
+    .right {
+      width: 440px;
+      background: #0a1020;
+      padding: 56px 48px;
+    }
+
+    /* Tab switcher */
+    .tab-bar {
+      display: flex;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 5px;
+      margin-bottom: 36px;
+    }
+    .tab {
+      flex: 1;
+      padding: 11px 0;
+      background: none; border: none;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px; font-weight: 600;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .tab.active {
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(56,189,248,0.3);
+    }
+
+    /* Alert */
+    .alert {
+      padding: 13px 16px; border-radius: 12px;
+      font-size: 13px; margin-bottom: 20px; display: none;
+    }
+    .alert.success { background: rgba(52,211,153,0.1); color: #34d399; border: 1px solid rgba(52,211,153,0.2); }
+    .alert.error   { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
+
+    /* Forms — fixed min-height so card doesn't resize between tabs */
+    .form { display: none; flex-direction: column; min-height: 310px; justify-content: center; }
+    .form.active { display: flex; }
+
+    .field { margin-bottom: 20px; }
+    .field label {
+      display: block; font-size: 11px; font-weight: 600;
+      color: rgba(255,255,255,0.4); letter-spacing: 1.5px;
+      text-transform: uppercase; margin-bottom: 8px;
+    }
+    .inp-wrap { position: relative; }
+    .field input {
+      width: 100%; padding: 14px 18px;
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px; color: #fff; outline: none;
+      transition: all 0.25s;
+    }
+    .field input::placeholder { color: rgba(255,255,255,0.18); }
+    .field input:focus {
+      border-color: #38bdf8;
+      background: rgba(56,189,248,0.05);
+      box-shadow: 0 0 0 4px rgba(56,189,248,0.08);
+    }
+    .eye {
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer; font-size: 16px;
+      color: rgba(255,255,255,0.25); transition: color 0.2s;
+    }
+    .eye:hover { color: #38bdf8; }
+    .err { color: #f87171; font-size: 11px; display: none; margin-top: 5px; }
+
+    /* Submit button */
+    .btn {
+      width: 100%; padding: 15px;
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      color: #fff; border: none; border-radius: 13px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; letter-spacing: 0.5px;
+      box-shadow: 0 8px 30px rgba(56,189,248,0.25);
+      transition: all 0.3s; margin-top: 6px;
+      position: relative; overflow: hidden;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(56,189,248,0.4); }
+    .btn:active { transform: translateY(0); }
+    .btn::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .btn:hover::after { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="particles" id="particles"></div>
+
+<div class="wrapper">
+  <!-- LEFT -->
+  <div class="left">
+    <div class="logo-ring">
+      <div class="logo-inner">⚗️</div>
+    </div>
+    <div>
+      <div class="brand-name">Quantity Measurement</div>
+      <div class="brand-sub" style="margin-top:6px;">Convert · Compare · Calculate</div>
+    </div>
+    <div class="features">
+      <div class="feat"><div class="feat-dot"></div>Length, Weight, Volume & Temperature</div>
+      <div class="feat"><div class="feat-dot"></div>Real-time unit conversions</div>
+      <div class="feat"><div class="feat-dot"></div>Full calculation history saved</div>
+      <div class="feat"><div class="feat-dot"></div>Secure JWT authentication</div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="tab-bar">
+      <button class="tab" id="tabLogin" onclick="switchTab('login')">Login</button>
+      <button class="tab active" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+
+    <div class="alert" id="alertBox"></div>
+
+    <!-- LOGIN -->
+    <div class="form" id="formLogin">
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com"/>
+        <div class="err" id="loginEmailErr">Please enter a valid email</div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <div class="inp-wrap">
+          <input type="password" id="loginPw" placeholder="Your password"/>
+          <span class="eye" onclick="togglePw('loginPw',this)">👁</span>
+        </div>
+        <div class="err" id="loginPwErr">Password is required</div>
+      </div>
+      <button class="btn" onclick="handleLogin()">Sign In →</button>
+    </div>
+
+    <!-- SIGNUP -->
+    <div class="form active" id="formSignup">
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="signupName" placeholder="Choose a username (min 3 chars)"/>
+        <div class="err" id="signupNameErr">Min 3 characters required</div>
+      </div>
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="signupEmail" placeholder="you@example.com"/>
+        <div class="err" id="signupEmailErr">Please enter a valid email</div>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <div class="inp-wrap">
+          <input type="password" id="signupPw" placeholder="Min 8 characters"/>
+          <span class="eye" onclick="togglePw('signupPw',this)">👁</span>
+        </div>
+        <div class="err" id="signupPwErr">Min 8 characters required</div>
+      </div>
+      <button class="btn" onclick="handleSignup()">Create Account →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Particles
+  const pc = document.getElementById('particles');
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const s = Math.random() * 6 + 3;
+    p.style.cssText = `width:${s}px;height:${s}px;left:${Math.random()*100}%;
+      animation-duration:${Math.random()*15+10}s;
+      animation-delay:${Math.random()*10}s;
+      background:rgba(${Math.random()>0.5?'56,189,248':'168,85,247'},0.2)`;
+    pc.appendChild(p);
+  }
+
+  const API = 'http://localhost:5167/api/v1';
+
+  function switchTab(t) {
+    const isLogin = t === 'login';
+    document.getElementById('formLogin').classList.toggle('active', isLogin);
+    document.getElementById('formSignup').classList.toggle('active', !isLogin);
+    document.getElementById('tabLogin').classList.toggle('active', isLogin);
+    document.getElementById('tabSignup').classList.toggle('active', !isLogin);
+    hideAlert();
+  }
+
+  function showAlert(msg, type) {
+    const b = document.getElementById('alertBox');
+    b.textContent = msg; b.className = 'alert ' + type; b.style.display = 'block';
+  }
+  function hideAlert() { document.getElementById('alertBox').style.display = 'none'; }
+
+  function showErr(id, show) { document.getElementById(id).style.display = show ? 'block' : 'none'; }
+
+  function togglePw(id, el) {
+    const i = document.getElementById(id);
+    i.type = i.type === 'password' ? 'text' : 'password';
+    el.textContent = i.type === 'password' ? '👁' : '🙈';
+  }
+
+  async function handleSignup() {
+    const username = document.getElementById('signupName').value.trim();
+    const email    = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPw').value;
+    let ok = true;
+    showErr('signupNameErr', username.length < 3); if (username.length < 3) ok = false;
+    showErr('signupEmailErr', !email.includes('@')); if (!email.includes('@')) ok = false;
+    showErr('signupPwErr', password.length < 8); if (password.length < 8) ok = false;
+    if (!ok) return;
+    try {
+      const res  = await fetch(`${API}/auth/signup`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ username, email, password })
+      });
+      const data = await res.json();
+      if (res.ok || res.status === 201) {
+        showAlert('✅ Account created! Please login.', 'success');
+        document.getElementById('signupName').value = '';
+        document.getElementById('signupEmail').value = '';
+        document.getElementById('signupPw').value = '';
+        setTimeout(() => switchTab('login'), 1500);
+      } else {
+        showAlert('❌ ' + (data.message || 'Signup failed'), 'error');
+      }
+    } catch { showAlert('❌ Cannot connect to server. Is backend running?', 'error'); }
+  }
+
+  async function handleLogin() {
+    const email    = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPw').value;
+    let ok = true;
+    showErr('loginEmailErr', !email.includes('@')); if (!email.includes('@')) ok = false;
+    showErr('loginPwErr', !password); if (!password) ok = false;
+    if (!ok) return;
+    try {
+      const res  = await fetch(`${API}/auth/login`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.data) {
+        localStorage.setItem('accessToken',  data.data.accessToken);
+        localStorage.setItem('refreshToken', data.data.refreshToken);
+        localStorage.setItem('username',     data.data.username);
+        window.location.href = 'dashboard.html';
+      } else {
+        showAlert('❌ ' + (data.message || 'Invalid credentials'), 'error');
+      }
+    } catch { showAlert('❌ Cannot connect to server. Is backend running?', 'error'); }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quantity Measurement – Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+    :root { --cyan:#38bdf8; --violet:#818cf8; --gold:#fbbf24; --green:#34d399; --coral:#fb7185; }
+
+    [data-theme="dark"] {
+      --bg:#060b18; --nav-bg:rgba(6,11,24,0.97); --sb-bg:rgba(255,255,255,0.02);
+      --surf:rgba(255,255,255,0.04); --surf2:rgba(255,255,255,0.08);
+      --border:rgba(255,255,255,0.08); --text:#e2e8f0; --muted:rgba(255,255,255,0.38);
+      --input-bg:rgba(255,255,255,0.07);
+    }
+    [data-theme="light"] {
+      --bg:#f0f4f8; --nav-bg:rgba(255,255,255,0.97); --sb-bg:#fff;
+      --surf:#fff; --surf2:#f1f5f9;
+      --border:rgba(0,0,0,0.09); --text:#1e293b; --muted:rgba(0,0,0,0.42);
+      --input-bg:#f1f5f9;
+    }
+
+    body {
+      font-family:'Outfit',sans-serif; background:var(--bg); color:var(--text);
+      min-height:100vh; display:flex; flex-direction:column; transition:background .3s,color .3s;
+    }
+
+    /* NAVBAR */
+    .nav {
+      height:62px; background:var(--nav-bg); border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 24px; position:sticky; top:0; z-index:200; backdrop-filter:blur(16px);
+      transition:background .3s;
+    }
+    .nav-brand {
+      font-size:18px; font-weight:800;
+      background:linear-gradient(90deg,var(--cyan),var(--violet));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .nav-right { display:flex; align-items:center; gap:12px; }
+    .nav-user {
+      font-size:13px; color:var(--muted); background:var(--surf2);
+      border:1px solid var(--border); padding:6px 14px; border-radius:20px;
+    }
+
+    /* Theme toggle switch */
+    .theme-wrap { display:flex; align-items:center; gap:8px; }
+    .theme-lbl { font-size:12px; color:var(--muted); font-weight:600; }
+    .t-switch {
+      width:46px; height:26px; background:var(--surf2); border:1px solid var(--border);
+      border-radius:13px; cursor:pointer; position:relative; transition:background .3s;
+    }
+    .t-switch::after {
+      content:''; position:absolute; width:20px; height:20px; border-radius:50%;
+      background:linear-gradient(135deg,var(--cyan),var(--violet));
+      top:2px; left:2px; transition:transform .3s;
+    }
+    [data-theme="light"] .t-switch::after { transform:translateX(20px); }
+
+    .btn-logout {
+      background:rgba(251,113,133,0.1); border:1px solid rgba(251,113,133,0.25);
+      color:var(--coral); padding:7px 18px; border-radius:9px;
+      font-family:'Outfit',sans-serif; font-size:13px; font-weight:600;
+      cursor:pointer; transition:all .2s;
+    }
+    .btn-logout:hover { background:rgba(251,113,133,0.22); }
+
+    /* LAYOUT */
+    .layout { display:flex; flex:1; min-height:calc(100vh - 62px); }
+
+    /* SIDEBAR */
+    .sidebar {
+      width:230px; background:var(--sb-bg); border-right:1px solid var(--border);
+      display:flex; flex-direction:column;
+      position:sticky; top:62px; height:calc(100vh - 62px);
+      overflow:hidden; flex-shrink:0; transition:background .3s;
+    }
+    .sb-lbl {
+      font-size:10px; font-weight:700; color:var(--muted);
+      letter-spacing:2px; text-transform:uppercase; padding:18px 18px 8px;
+    }
+    .nav-item {
+      display:flex; align-items:center; gap:12px; padding:11px 16px;
+      margin:2px 10px; border-radius:11px; border:1px solid transparent;
+      background:none; color:var(--muted); font-family:'Outfit',sans-serif;
+      font-size:14px; font-weight:500; cursor:pointer; transition:all .2s;
+      width:calc(100% - 20px); text-align:left;
+    }
+    .nav-item:hover { background:var(--surf2); color:var(--text); }
+    .nav-item.active {
+      background:rgba(56,189,248,0.1); border-color:rgba(56,189,248,0.25);
+      color:var(--cyan); font-weight:600;
+    }
+    .nav-item .ni { font-size:17px; }
+
+    .sb-div { height:1px; background:var(--border); margin:10px 16px; }
+
+    /* history filters in sidebar */
+    .h-filters { padding:0 10px; display:flex; flex-direction:column; gap:3px; }
+    .hf {
+      display:flex; align-items:center; gap:9px; padding:9px 12px;
+      border-radius:9px; border:1px solid transparent;
+      background:none; color:var(--muted); font-family:'Outfit',sans-serif;
+      font-size:13px; font-weight:500; cursor:pointer; transition:all .2s;
+      width:100%; text-align:left;
+    }
+    .hf:hover { background:var(--surf2); color:var(--text); }
+    .hf.active { background:rgba(56,189,248,0.1); border-color:rgba(56,189,248,0.22); color:var(--cyan); }
+
+    /* recent history list */
+    .h-scroll {
+      flex:1; overflow-y:auto; padding:8px 10px;
+      display:flex; flex-direction:column; gap:7px;
+    }
+    .h-scroll::-webkit-scrollbar{width:3px}
+    .h-scroll::-webkit-scrollbar-thumb{background:rgba(128,128,128,0.2);border-radius:3px}
+
+    .h-item {
+      background:var(--surf); border:1px solid var(--border);
+      border-radius:10px; padding:10px 12px; transition:all .2s;
+      animation:fadeUp .3s ease both;
+    }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    .h-item:hover { background:var(--surf2); border-color:rgba(56,189,248,0.2); }
+    .h-op   { font-size:9px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--cyan); margin-bottom:4px; }
+    .h-vals { font-size:11px; color:var(--muted); margin-bottom:3px; }
+    .h-res  { font-size:12px; font-weight:600; color:var(--text); }
+    .h-err  { color:var(--coral); }
+    .no-hist { text-align:center; color:var(--muted); font-size:12px; padding:24px 0; line-height:1.8; }
+
+    /* stats footer */
+    .s-footer {
+      padding:12px 10px; border-top:1px solid var(--border);
+      display:grid; grid-template-columns:1fr 1fr; gap:6px; flex-shrink:0;
+    }
+    .stat-box { background:var(--surf2); border:1px solid var(--border); border-radius:10px; padding:8px 10px; text-align:center; }
+    .stat-num { font-size:18px; font-weight:800; color:var(--cyan); }
+    .stat-lbl { font-size:10px; color:var(--muted); margin-top:1px; }
+
+    /* MAIN */
+    .main { flex:1; padding:18px 24px; overflow-y:auto; }
+
+    .page { display:none; }
+    .page.active { display:block; animation:fadeUp .35s ease; }
+
+    /* card */
+    .card {
+      background:var(--surf); border:1px solid var(--border);
+      border-radius:16px; padding:16px 20px; margin-bottom:14px;
+      transition:background .3s;
+    }
+    .card-lbl {
+      font-size:10px; font-weight:700; color:var(--muted);
+      letter-spacing:2px; text-transform:uppercase; margin-bottom:18px;
+    }
+
+    /* ICON GRID — same style for BOTH type and action cards */
+    .icon-grid { display:grid; gap:10px; }
+    .type-grid   { grid-template-columns:repeat(4,1fr); }
+    .action-grid { grid-template-columns:repeat(5,1fr); }
+
+    .icon-card {
+      display:flex; flex-direction:column; align-items:center;
+      justify-content:center; gap:6px; padding:12px 8px;
+      border-radius:12px; border:2px solid var(--border);
+      background:var(--surf); cursor:pointer; transition:all .25s;
+      font-family:'Outfit',sans-serif;
+    }
+    .icon-card .ic-e { font-size:22px; }
+    .icon-card .ic-l { font-size:12px; font-weight:600; color:var(--muted); }
+    .icon-card:hover { transform:translateY(-3px); border-color:rgba(56,189,248,0.5); }
+    .icon-card:hover .ic-l { color:var(--text); }
+
+    /* Unique accent per card */
+    .icon-card.active[data-id="LengthUnit"]      { border-color:var(--cyan);   background:rgba(56,189,248,0.09);  box-shadow:0 0 22px rgba(56,189,248,0.13);  }
+    .icon-card.active[data-id="WeightUnit"]      { border-color:var(--gold);   background:rgba(251,191,36,0.09);  box-shadow:0 0 22px rgba(251,191,36,0.13);  }
+    .icon-card.active[data-id="TemperatureUnit"] { border-color:var(--coral);  background:rgba(251,113,133,0.09); box-shadow:0 0 22px rgba(251,113,133,0.13); }
+    .icon-card.active[data-id="VolumeUnit"]      { border-color:var(--green);  background:rgba(52,211,153,0.09);  box-shadow:0 0 22px rgba(52,211,153,0.13);  }
+    .icon-card.active[data-id="compare"]         { border-color:var(--cyan);   background:rgba(56,189,248,0.09);  box-shadow:0 0 22px rgba(56,189,248,0.13);  }
+    .icon-card.active[data-id="convert"]         { border-color:var(--gold);   background:rgba(251,191,36,0.09);  box-shadow:0 0 22px rgba(251,191,36,0.13);  }
+    .icon-card.active[data-id="add"]             { border-color:var(--green);  background:rgba(52,211,153,0.09);  box-shadow:0 0 22px rgba(52,211,153,0.13);  }
+    .icon-card.active[data-id="subtract"]        { border-color:var(--coral);  background:rgba(251,113,133,0.09); box-shadow:0 0 22px rgba(251,113,133,0.13); }
+    .icon-card.active[data-id="divide"]          { border-color:var(--violet); background:rgba(129,140,248,0.09); box-shadow:0 0 22px rgba(129,140,248,0.13); }
+
+    .icon-card.active[data-id="LengthUnit"]      .ic-l { color:var(--cyan);   }
+    .icon-card.active[data-id="WeightUnit"]      .ic-l { color:var(--gold);   }
+    .icon-card.active[data-id="TemperatureUnit"] .ic-l { color:var(--coral);  }
+    .icon-card.active[data-id="VolumeUnit"]      .ic-l { color:var(--green);  }
+    .icon-card.active[data-id="compare"]         .ic-l { color:var(--cyan);   }
+    .icon-card.active[data-id="convert"]         .ic-l { color:var(--gold);   }
+    .icon-card.active[data-id="add"]             .ic-l { color:var(--green);  }
+    .icon-card.active[data-id="subtract"]        .ic-l { color:var(--coral);  }
+    .icon-card.active[data-id="divide"]          .ic-l { color:var(--violet); }
+
+    /* INPUT AREA */
+    .inp-row { display:grid; grid-template-columns:1fr 50px 1fr; gap:14px; align-items:start; }
+    .v-block label {
+      display:block; font-size:10px; font-weight:700; color:var(--muted);
+      letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px;
+    }
+    .v-block input {
+      width:100%; padding:10px 14px; background:var(--input-bg);
+      border:1.5px solid var(--border); border-radius:12px;
+      font-family:'Outfit',sans-serif; font-size:18px; font-weight:700;
+      color:var(--text); outline:none; transition:all .25s; margin-bottom:12px;
+    }
+    .v-block input:focus { border-color:var(--cyan); box-shadow:0 0 0 4px rgba(56,189,248,0.08); }
+    .op-badge { font-size:20px; font-weight:800; color:var(--cyan); text-align:center; padding-top:34px; }
+
+    /* Unit pills — NO DROPDOWNS */
+    .unit-pills { display:flex; flex-wrap:wrap; gap:6px; }
+    .u-pill {
+      padding:5px 13px; border-radius:16px; border:1.5px solid var(--border);
+      background:none; color:var(--muted); font-family:'Outfit',sans-serif;
+      font-size:11px; font-weight:600; cursor:pointer; transition:all .2s;
+    }
+    .u-pill:hover { border-color:rgba(56,189,248,0.4); color:var(--text); }
+    .u-pill.active { background:rgba(56,189,248,0.12); border-color:var(--cyan); color:var(--cyan); }
+
+    /* Calc button */
+    .calc-btn {
+      width:100%; padding:12px;
+      background:linear-gradient(135deg,var(--cyan) 0%,var(--violet) 100%);
+      color:#fff; border:none; border-radius:15px;
+      font-family:'Outfit',sans-serif; font-size:14px; font-weight:700;
+      cursor:pointer; letter-spacing:.5px;
+      box-shadow:0 8px 30px rgba(56,189,248,0.2); transition:all .3s; margin-bottom:18px;
+    }
+    .calc-btn:hover { transform:translateY(-2px); box-shadow:0 14px 40px rgba(56,189,248,0.35); }
+    .calc-btn:active { transform:translateY(0); }
+
+    /* Result */
+    .result-box {
+      background:rgba(56,189,248,0.06); border:1px solid rgba(56,189,248,0.2);
+      border-left:4px solid var(--cyan); border-radius:16px; padding:24px 28px;
+      margin-bottom:18px; display:none; animation:fadeUp .4s ease;
+    }
+    .r-lbl { font-size:10px; font-weight:700; color:var(--cyan); letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+    .r-val { font-size:32px; font-weight:800; color:var(--cyan); line-height:1; margin-bottom:6px; }
+    .r-str { font-size:14px; color:var(--muted); }
+
+    .error-box {
+      background:rgba(251,113,133,0.08); border:1px solid rgba(251,113,133,0.2);
+      border-radius:14px; padding:16px 20px; color:var(--coral);
+      font-size:14px; margin-bottom:18px; display:none; animation:fadeUp .3s ease;
+    }
+
+    /* HISTORY PAGE */
+    .hist-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; align-items:center; }
+    .hf-pill {
+      padding:7px 16px; border-radius:20px; border:1.5px solid var(--border);
+      background:none; color:var(--muted); font-family:'Outfit',sans-serif;
+      font-size:12px; font-weight:600; cursor:pointer; transition:all .2s;
+    }
+    .hf-pill.active { background:rgba(56,189,248,0.12); border-color:var(--cyan); color:var(--cyan); }
+    .hf-pill:hover  { border-color:rgba(56,189,248,0.4); color:var(--text); }
+    .btn-ref {
+      margin-left:auto; background:var(--surf2); border:1px solid var(--border);
+      color:var(--muted); padding:7px 16px; border-radius:9px;
+      font-family:'Outfit',sans-serif; font-size:13px; cursor:pointer; transition:all .2s;
+    }
+    .btn-ref:hover { color:var(--cyan); border-color:var(--cyan); }
+
+    .hist-table { width:100%; border-collapse:collapse; }
+    .hist-table th {
+      background:var(--surf2); padding:12px 16px; text-align:left;
+      font-size:11px; font-weight:700; color:var(--muted);
+      letter-spacing:1px; text-transform:uppercase; border-bottom:2px solid var(--border);
+    }
+    .hist-table td { padding:13px 16px; font-size:13px; color:var(--text); border-bottom:1px solid var(--border); }
+    .hist-table tr:hover td { background:var(--surf2); }
+    .badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+    .badge.ok  { background:rgba(52,211,153,0.12); color:var(--green); }
+    .badge.err { background:rgba(251,113,133,0.12); color:var(--coral); }
+    .no-data { text-align:center; color:var(--muted); padding:40px; font-size:14px; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="nav">
+  <div class="nav-brand">⚗️ Quantity Measurement</div>
+  <div class="nav-right">
+    <span class="nav-user" id="userDisplay"></span>
+    <div class="theme-wrap">
+      <span class="theme-lbl" id="themeLbl">🌙 Dark</span>
+      <button class="t-switch" onclick="toggleTheme()" title="Toggle theme"></button>
+    </div>
+    <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-lbl">Navigation</div>
+    <button class="nav-item active" onclick="switchPage('calc',this)">
+      <span class="ni">🧮</span> Calculator
+    </button>
+    <button class="nav-item" onclick="switchPage('hist',this)">
+      <span class="ni">📋</span> History
+    </button>
+
+    <div class="sb-div"></div>
+    <div class="sb-lbl">Filter History</div>
+    <div class="h-filters">
+      <button class="hf active" onclick="filterSidebar('',this)">🔍 All</button>
+      <button class="hf" onclick="filterSidebar('LengthUnit',this)">📏 Length</button>
+      <button class="hf" onclick="filterSidebar('WeightUnit',this)">⚖️ Weight</button>
+      <button class="hf" onclick="filterSidebar('TemperatureUnit',this)">🌡️ Temperature</button>
+      <button class="hf" onclick="filterSidebar('VolumeUnit',this)">🧪 Volume</button>
+    </div>
+
+    <div class="sb-div"></div>
+    <div class="sb-lbl" style="padding-top:6px">Recent</div>
+    <div class="h-scroll" id="histList">
+      <div class="no-hist">No history yet.<br/>Do a calculation!</div>
+    </div>
+
+    <div class="s-footer">
+      <div class="stat-box"><div class="stat-num" id="stTotal">0</div><div class="stat-lbl">Total</div></div>
+      <div class="stat-box"><div class="stat-num" id="stOk">0</div><div class="stat-lbl">Success</div></div>
+      <div class="stat-box"><div class="stat-num" id="stLen">0</div><div class="stat-lbl">Length</div></div>
+      <div class="stat-box"><div class="stat-num" id="stWt">0</div><div class="stat-lbl">Weight</div></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- CALCULATOR PAGE -->
+    <div class="page active" id="page-calc">
+
+      <!-- TYPE CARDS -->
+      <div class="card">
+        <div class="card-lbl">Choose Measurement Type</div>
+        <div class="icon-grid type-grid">
+          <button class="icon-card active" data-id="LengthUnit" onclick="selectType('LengthUnit',this)">
+            <span class="ic-e">📏</span><span class="ic-l">Length</span>
+          </button>
+          <button class="icon-card" data-id="WeightUnit" onclick="selectType('WeightUnit',this)">
+            <span class="ic-e">⚖️</span><span class="ic-l">Weight</span>
+          </button>
+          <button class="icon-card" data-id="TemperatureUnit" onclick="selectType('TemperatureUnit',this)">
+            <span class="ic-e">🌡️</span><span class="ic-l">Temperature</span>
+          </button>
+          <button class="icon-card" data-id="VolumeUnit" onclick="selectType('VolumeUnit',this)">
+            <span class="ic-e">🧪</span><span class="ic-l">Volume</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ACTION CARDS — same style, 5 columns -->
+      <div class="card">
+        <div class="card-lbl">Choose Action</div>
+        <div class="icon-grid action-grid">
+          <button class="icon-card" data-id="compare" onclick="selectAction('compare',this)">
+            <span class="ic-e">⚖</span><span class="ic-l">Compare</span>
+          </button>
+          <button class="icon-card" data-id="convert" onclick="selectAction('convert',this)">
+            <span class="ic-e">🔄</span><span class="ic-l">Convert</span>
+          </button>
+          <button class="icon-card active" data-id="add" onclick="selectAction('add',this)">
+            <span class="ic-e">➕</span><span class="ic-l">Add</span>
+          </button>
+          <button class="icon-card" data-id="subtract" onclick="selectAction('subtract',this)">
+            <span class="ic-e">➖</span><span class="ic-l">Subtract</span>
+          </button>
+          <button class="icon-card" data-id="divide" onclick="selectAction('divide',this)">
+            <span class="ic-e">➗</span><span class="ic-l">Divide</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- VALUES — NO DROPDOWNS -->
+      <div class="card">
+        <div class="card-lbl">Enter Values</div>
+        <div class="inp-row">
+          <div class="v-block">
+            <label>Value 1</label>
+            <input type="number" id="val1" value="1"/>
+            <div class="unit-pills" id="upills1"></div>
+          </div>
+          <div class="op-badge" id="opBadge">+</div>
+          <div class="v-block">
+            <label>Value 2</label>
+            <input type="number" id="val2" value="1"/>
+            <div class="unit-pills" id="upills2"></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="calc-btn" onclick="calculate()">⚡ Calculate</button>
+
+      <div class="result-box" id="resultBox">
+        <div class="r-lbl">Result</div>
+        <div class="r-val" id="rVal"></div>
+        <div class="r-str" id="rStr"></div>
+      </div>
+      <div class="error-box" id="errorBox"></div>
+    </div>
+
+    <!-- HISTORY PAGE -->
+    <div class="page" id="page-hist">
+      <div class="card">
+        <div class="card-lbl">Calculation History</div>
+        <div class="hist-bar">
+          <button class="hf-pill active" onclick="filterHistPage('',this)">All</button>
+          <button class="hf-pill" onclick="filterHistPage('LengthUnit',this)">📏 Length</button>
+          <button class="hf-pill" onclick="filterHistPage('WeightUnit',this)">⚖️ Weight</button>
+          <button class="hf-pill" onclick="filterHistPage('TemperatureUnit',this)">🌡️ Temp</button>
+          <button class="hf-pill" onclick="filterHistPage('VolumeUnit',this)">🧪 Volume</button>
+          <button class="hf-pill" onclick="filterHistPage('compare',this)">⚖ Compare</button>
+          <button class="hf-pill" onclick="filterHistPage('convert',this)">🔄 Convert</button>
+          <button class="hf-pill" onclick="filterHistPage('add',this)">➕ Add</button>
+          <button class="hf-pill" onclick="filterHistPage('subtract',this)">➖ Subtract</button>
+          <button class="hf-pill" onclick="filterHistPage('divide',this)">➗ Divide</button>
+          <button class="btn-ref" onclick="loadHistory()">🔄 Refresh</button>
+        </div>
+        <table class="hist-table">
+          <thead>
+            <tr>
+              <th>Type</th><th>Operation</th><th>Value 1</th>
+              <th>Value 2</th><th>Result</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="histTableBody">
+            <tr><td colspan="6" class="no-data">No history yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+var API = 'http://localhost:5167/api/v1';
+var UNITS = {
+  LengthUnit:['FEET','INCH','YARD','METER','CM'],
+  WeightUnit:['KILOGRAM','GRAM','POUND','OUNCE'],
+  VolumeUnit:['LITRE','MILLILITRE','GALLON'],
+  TemperatureUnit:['CELSIUS','FAHRENHEIT','KELVIN']
+};
+
+var currentType='LengthUnit', currentAction='add';
+var selUnit1='FEET', selUnit2='INCH';
+var allHistory=[], sidebarFilter='', histPageFilter='';
+
+function authHdrs(){
+  return {'Content-Type':'application/json','Authorization':'Bearer '+localStorage.getItem('accessToken')};
+}
+
+window.onload=function(){
+  if(!localStorage.getItem('accessToken')){window.location.href='index.html';return;}
+  document.getElementById('userDisplay').textContent='👤 '+(localStorage.getItem('username')||'User');
+  var t=localStorage.getItem('theme')||'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  updateThemeLbl(t);
+  buildUnitPills();
+  loadHistory();
+};
+
+/* Theme */
+function toggleTheme(){
+  var c=document.documentElement.getAttribute('data-theme');
+  var n=c==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',n);
+  localStorage.setItem('theme',n);
+  updateThemeLbl(n);
+}
+function updateThemeLbl(t){
+  document.getElementById('themeLbl').textContent=t==='dark'?'🌙 Dark':'☀️ Light';
+}
+
+/* Page switch */
+function switchPage(page,el){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
+  document.getElementById('page-'+page).classList.add('active');
+  el.classList.add('active');
+  if(page==='hist') renderHistTable(filteredHist(histPageFilter));
+}
+
+/* Logout */
+function handleLogout(){
+  fetch(API+'/auth/logout',{method:'POST',headers:authHdrs(),
+    body:JSON.stringify({accessToken:localStorage.getItem('accessToken'),refreshToken:localStorage.getItem('refreshToken')})
+  }).catch(function(){}).finally(function(){localStorage.clear();window.location.href='index.html';});
+}
+
+/* Unit pills */
+function buildUnitPills(){
+  var u=UNITS[currentType]; selUnit1=u[0]; selUnit2=u[1]||u[0];
+  makePills('upills1',u,selUnit1,1); makePills('upills2',u,selUnit2,2);
+}
+function makePills(id,units,sel,slot){
+  document.getElementById(id).innerHTML=units.map(function(u){
+    return '<button class="u-pill '+(u===sel?'active':'')+'" onclick="pickUnit('+slot+',\''+u+'\',this)">'+u+'</button>';
+  }).join('');
+}
+function pickUnit(slot,unit,el){
+  if(slot===1)selUnit1=unit;else selUnit2=unit;
+  el.parentElement.querySelectorAll('.u-pill').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');
+}
+
+/* Select type */
+var TYPE_IDS=['LengthUnit','WeightUnit','TemperatureUnit','VolumeUnit'];
+function selectType(type,el){
+  currentType=type;
+  document.querySelectorAll('.icon-card').forEach(function(c){if(TYPE_IDS.includes(c.dataset.id))c.classList.remove('active');});
+  el.classList.add('active'); buildUnitPills(); clearResult();
+}
+
+/* Select action */
+var ACT_IDS=['compare','convert','add','subtract','divide'];
+var ACT_SYM={compare:'=?',convert:'→',add:'+',subtract:'−',divide:'÷'};
+function selectAction(action,el){
+  currentAction=action;
+  document.querySelectorAll('.icon-card').forEach(function(c){if(ACT_IDS.includes(c.dataset.id))c.classList.remove('active');});
+  el.classList.add('active');
+  document.getElementById('opBadge').textContent=ACT_SYM[action]||'+';
+  clearResult();
+}
+
+/* Calculate */
+async function calculate(){
+  var v1=parseFloat(document.getElementById('val1').value);
+  var v2=parseFloat(document.getElementById('val2').value);
+  if(isNaN(v1)||isNaN(v2)){showErr('Please enter valid numbers!');return;}
+  var body={
+    thisQuantityDTO:{value:v1,unit:selUnit1,measurementType:currentType},
+    thatQuantityDTO:{value:v2,unit:selUnit2,measurementType:currentType}
+  };
+  try{
+    var res=await fetch(API+'/quantities/'+currentAction,{method:'POST',headers:authHdrs(),body:JSON.stringify(body)});
+    if(res.status===401){alert('Session expired.');localStorage.clear();window.location.href='index.html';return;}
+    var data=await res.json();
+    if(!res.ok||data.isError){showErr(data.errorMessage||data.title||'Calculation failed');return;}
+    showResult(data); setTimeout(loadHistory,600);
+  }catch(e){showErr('Cannot connect to server. Is backend running on port 5167?');}
+}
+
+function showResult(data){
+  document.getElementById('errorBox').style.display='none';
+  document.getElementById('resultBox').style.display='block';
+  var val=currentAction==='compare'?(data.resultValue===1?'✅ Equal':'❌ Not Equal')
+    :(data.resultValue!==undefined?Number(data.resultValue.toFixed(6)).toString():'—');
+  document.getElementById('rVal').textContent=val;
+  document.getElementById('rStr').textContent=data.resultString||((data.resultUnit||'')+' '+(data.resultMeasurementType||''));
+}
+function showErr(msg){
+  document.getElementById('resultBox').style.display='none';
+  var b=document.getElementById('errorBox');b.style.display='block';b.textContent='⚠️ '+msg;
+}
+function clearResult(){
+  document.getElementById('resultBox').style.display='none';
+  document.getElementById('errorBox').style.display='none';
+}
+
+/* History */
+async function loadHistory(){
+  try{
+    var types=['LengthUnit','WeightUnit','VolumeUnit','TemperatureUnit'];
+    var results=await Promise.all(types.map(function(t){
+      return fetch(API+'/quantities/history/type/'+t,{headers:authHdrs()}).then(function(r){return r.json();});
+    }));
+    var records=[];
+    results.forEach(function(r){if(Array.isArray(r))records=records.concat(r);});
+    allHistory=records.reverse();
+    renderSidebar(sidebarFilter?allHistory.filter(function(r){return r.thisMeasurementType===sidebarFilter;}):allHistory);
+    updateStats(allHistory);
+    if(document.getElementById('page-hist').classList.contains('active'))renderHistTable(filteredHist(histPageFilter));
+  }catch(e){}
+}
+
+function filterSidebar(type,el){
+  sidebarFilter=type;
+  document.querySelectorAll('.hf').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');
+  renderSidebar(type?allHistory.filter(function(r){return r.thisMeasurementType===type;}):allHistory);
+}
+
+function renderSidebar(records){
+  var list=document.getElementById('histList');
+  if(!records.length){list.innerHTML='<div class="no-hist">No records found.</div>';return;}
+  list.innerHTML=records.slice(0,30).map(function(r){
+    return '<div class="h-item"><div class="h-op">'+(r.operation||'—')+'</div>'+
+      '<div class="h-vals">'+r.thisValue+' '+r.thisUnit+' · '+r.thatValue+' '+r.thatUnit+'</div>'+
+      '<div class="h-res '+(r.isError?'h-err':'')+'">'+
+        (r.isError?'⚠ Error':(r.resultString||r.resultValue))+'</div></div>';
+  }).join('');
+}
+
+function filteredHist(filter){
+  if(!filter) return allHistory;
+  var ops=['compare','convert','add','subtract','divide'];
+  if(ops.includes(filter)) return allHistory.filter(function(r){return(r.operation||'').toLowerCase()===filter;});
+  return allHistory.filter(function(r){return r.thisMeasurementType===filter;});
+}
+
+function filterHistPage(filter,el){
+  histPageFilter=filter;
+  document.querySelectorAll('.hf-pill').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');
+  renderHistTable(filteredHist(filter));
+}
+
+function renderHistTable(records){
+  var tbody=document.getElementById('histTableBody');
+  if(!records.length){tbody.innerHTML='<tr><td colspan="6" class="no-data">No history found</td></tr>';return;}
+  tbody.innerHTML=records.map(function(r){
+    return '<tr><td>'+(r.thisMeasurementType||'—')+'</td>'+
+      '<td><strong>'+(r.operation||'—')+'</strong></td>'+
+      '<td>'+r.thisValue+' '+r.thisUnit+'</td>'+
+      '<td>'+r.thatValue+' '+r.thatUnit+'</td>'+
+      '<td>'+(r.isError?'—':(r.resultString||r.resultValue||'—'))+'</td>'+
+      '<td><span class="badge '+(r.isError?'err':'ok')+'">'+(r.isError?'❌ Error':'✅ OK')+'</span></td></tr>';
+  }).join('');
+}
+
+function updateStats(records){
+  document.getElementById('stTotal').textContent=records.length;
+  document.getElementById('stOk').textContent=records.filter(function(r){return!r.isError;}).length;
+  document.getElementById('stLen').textContent=records.filter(function(r){return r.thisMeasurementType==='LengthUnit';}).length;
+  document.getElementById('stWt').textContent=records.filter(function(r){return r.thisMeasurementType==='WeightUnigitt';}).length;
+}
+</script>
+</body>
+</html>
