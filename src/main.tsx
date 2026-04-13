@@ -6,7 +6,7 @@ import './styles/main.css'
 
 const GOOGLE_CLIENT_ID = '758481096063-qjolfknr92alak59n25plrpvlf93bkb2.apps.googleusercontent.com'
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <App />
